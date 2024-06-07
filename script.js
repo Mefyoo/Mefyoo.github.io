@@ -1,260 +1,190 @@
-let frame = document.getElementById('frame');
-menu()
-function settingsBoth() {
-    frame.innerHTML = `
-    <div id='settings'>
-        <label id='levels'>Ilość działań: 200</label>
-        <input class="range" type='range' min='1' max='200' value='200'></input>
-    </div>
-    <button class='start'>Start</button>
-    `
-    document.querySelector('.range').addEventListener('mousedown',()=>{
-        let levels = document.getElementById('levels');
-        let levelsRange=setInterval(()=>levels.innerHTML=`Ilość działań: ${document.querySelector('.range').value}`,1)
-        document.querySelector('.range').addEventListener('mouseup',()=>{
-            clearInterval(levelsRange)
-        })
-    })
-    document.querySelector('.start').addEventListener('click',startBoth)
-}
-function startBoth() {
-    let numbers = [];
-    for (let i=1;i<=10;i++) {
-        for (let j=1;j<=10;j++) {
-            numbers.push([i,'x',j,i*j]);
-        }
-    }
-    for (let i=1;i<=10;i++) {
-        for (let j=1;j<=10;j++) {
-            numbers.push([i*j,':',i,j]);
-        }
-    }
-    levelBoth(numbers,[],0,parseInt(document.querySelector('.range').value))
-}
-function levelBoth(numbers,errors,level,maxLevel) {
-    if (level===maxLevel) {
-        end(errors,maxLevel)
-        return
-    }
-    let r = Math.random()
-    for (let i = 1; i<=numbers.length; i++) {
-        if (r<i/numbers.length) {
-            r=numbers.slice(i-1,i)[0]
-            numbers.splice(i-1,1)
-            console.warn(numbers)
-            console.warn(r)
-            break
-        }
-    }
-    level++
-    frame.innerHTML = `
-    <div id='ex'>
-        <span id="numbers">${r[0]} ${r[1]} ${r[2]} = </span>
-        <input id="input" placeholder="?" inputmode="numeric" maxlength="3" autofocus></input>
-    </div>
-    <span id="level">
-        <span>${level}/${maxLevel}</span>
-        <button id="next">></button>
-        <span style='color:red'>${errors.length}x</span>
-    </span>
-    `
-    document.getElementById('input').focus()
-    document.getElementById('next').addEventListener('click',nextBoth)
-    function nextBoth() {
-        if (r[3]==document.querySelector('input').value) {
-            levelBoth(numbers,errors,level,maxLevel)
-        }
-        else {
-            errors.push(r)
-            document.querySelector('body').style.backgroundColor = 'red'
-            setTimeout(()=>{document.querySelector('body').style.backgroundColor = 'rgb(0, 119, 255)'},700)
-            document.getElementById('next').removeEventListener('click',nextBoth)
-            levelBoth(numbers,errors,level,maxLevel)
-        }
-    }
-}
+const VOCABULARY = {
+  'pory roku': [
+    ['wiosna', 'spring'],
+    ['lato', 'summer'],
+    ['jesień', 'autumn'],
+    ['zima', 'winter'],
+  ],
+  pogoda: [
+    ['pogoda', 'the weather'],
+    ['jaka jest pogoda?', "what's the weather like?"],
+    ['pada śnieg', "it's snowing"],
+    ['jest zimno', "it's cold"],
+    ['jest gorąco', "it's hot"],
+    ['pada deszcz', "it's raining"],
+    ['jest burzowo', "it's stormy"],
+    ['jest wietrznie', "it's windy"],
+    ['jest słonecznie', "it's sunny"],
+    ['jest pochmurno', "it's cloudy"],
+    ['jest ciepło', "it's warm"],
+    ['pada śnieg', "it's snowing"],
+    ['dzisiaj', 'today'],
+    ['jest mokro', "it's wet"],
+  ],
+  czynności: [
+    ["She's swimming", 'Ona pływa'].reverse(),
+    ["He's juggling", 'On żongluje'].reverse(),
+    ['it is flying', 'Ono leci'].reverse(),
+    ["He's jumping", 'On skacze'].reverse(),
+    ["she's singing", 'ona śpiewa'].reverse(),
+    ["she's dancing", 'ona tańczy'].reverse(),
+    ["he's talking", 'on mówi'].reverse(),
+    ["he's drawing", 'on rysuje'].reverse(),
+    ['it is running', 'ono biega'].reverse(),
+  ],
+  'there is/are...': [
+    ['tutaj jest kot', 'there is a cat'],
+    ['tutaj są psy', 'there are dogs'],
+    ['tutaj jest stół', 'there is a table'],
+    ['tutaj jest dwóch nauczycieli', 'there are two teachers'],
+    ['tutaj nie ma psa', "there isn't a dog"],
+    ['tutaj nie ma kotów', "there aren't cats"],
+    ['tu nie ma żadnych psów', "there aren't any dogs"],
+    [
+      'Czy jest wysoka dziewczyna w tej klasie?',
+      'Is there a tall girl in this class?',
+    ],
+    ['Czy są tu koty?', 'Are there cats?'],
+    ['Czy są tu jakieś psy?', 'Are there any dogs here?'],
+  ],
+};
 
+const QUESTION = document.getElementById('question');
+const ANSWER = document.getElementById('answer');
+const BTN_CONFIRM = document.getElementById('btn-confirm');
+const CORRECT_ANSWER_SCREEN = document.getElementById('correct-answer-screen');
+const WRONG_ANSWER_SCREEN = document.getElementById('wrong-answer-screen');
+const BTN_NEXT_CORRECT = document.getElementById('btn-next-correct');
+const BTN_NEXT_WRONG = document.getElementById('btn-next-wrong');
+const RESULTS_SCREEN = document.getElementById('results-screen');
+const FINAL_RESULT = document.getElementById('final-result');
+const PERCENTAGES = document.getElementById('percentages');
+const LEVEL_SCREEN = document.getElementById('level-screen');
+const START_SCREEN = document.getElementById('start-screen');
 
+const BTN_RESTART = document.getElementById('btn-restart');
+BTN_RESTART.addEventListener('click', () => {
+  location.reload();
+});
 
+let score = 0;
+let maxScore = 0;
+const LEVELS = [];
+let levelIndex = 0;
+let levelCount = 0;
+const CATEGORIES_WRAPPER = document.getElementById('categories-wrapper');
+const CATEGORIES = Object.keys(VOCABULARY);
+CATEGORIES.forEach((category) => {
+  const BTN_CATEGORY = document.createElement('button');
+  BTN_CATEGORY.classList.add('btn-category');
+  BTN_CATEGORY.id = category;
+  BTN_CATEGORY.innerText = category;
+  BTN_CATEGORY.addEventListener('click', () => {
+    BTN_CATEGORY.classList.toggle('btn-category--disabled');
+  });
+  CATEGORIES_WRAPPER.appendChild(BTN_CATEGORY);
+});
 
+const BTN_START = document.getElementById('btn-start');
+BTN_START.addEventListener('click', () => {
+  const CURRENT_CATEGORIES = CATEGORIES.filter((category) => {
+    return !document
+      .getElementById(category)
+      .classList.contains('btn-category--disabled');
+  });
+  if (CURRENT_CATEGORIES.length === 0) return;
+  let TRANSLATIONS = [];
+  for (let category of CURRENT_CATEGORIES) {
+    TRANSLATIONS = TRANSLATIONS.concat(VOCABULARY[category]);
+  }
+  const NUMBER_OF_LEVELS = 10;
+  for (let i = 0; i < NUMBER_OF_LEVELS; i++) {
+    LEVELS.push(
+      createLevel(TRANSLATIONS[Math.floor(Math.random() * TRANSLATIONS.length)])
+    );
+  }
+  levelCount = LEVELS.length;
+  maxScore = levelCount;
+  score = 0;
+  LEVELS[0]();
+});
 
-
-function settingsMultiply() {
-    frame.innerHTML = `
-    <div id='settings'>
-        <label id='levels'>Ilość działań: 100</label>
-        <input class="range" type='range' min='1' max='100' value='100'></input>
-    </div>
-    <button class='start'>Start</button>
-    `
-    document.querySelector('.range').addEventListener('mousedown',()=>{
-        let levels = document.getElementById('levels');
-        let levelsRange=setInterval(()=>levels.innerHTML=`Ilość działań: ${document.querySelector('.range').value}`,1)
-        document.querySelector('.range').addEventListener('mouseup',()=>{
-            clearInterval(levelsRange)
-        })
-    })
-    document.querySelector('.start').addEventListener('click',startMultiply)
+function createLevel(translation) {
+  START_SCREEN.classList.add('hidden');
+  LEVEL_SCREEN.classList.remove('hidden');
+  const TYPE = Math.ceil(Math.random() * 1);
+  switch (TYPE) {
+    case 1:
+      return createLevel1(translation);
+  }
 }
-function startMultiply() {
-    let numbers = [];
-    for (let i=1;i<=10;i++) {
-        for (let j=1;j<=10;j++) {
-            numbers.push([i,'x',j,i*j]);
+function createLevel1(translation) {
+  return function () {
+    BTN_CONFIRM.classList.remove('hidden');
+    QUESTION.innerText = translation[0];
+    const ANSWER_FIELD = document.createElement('input');
+    ANSWER_FIELD.type = 'text';
+    ANSWER.appendChild(ANSWER_FIELD);
+    ANSWER_FIELD.focus();
+    BTN_CONFIRM.addEventListener(
+      'click',
+      () => {
+        BTN_CONFIRM.classList.add('hidden');
+        if (ANSWER_FIELD.value.toLowerCase() === translation[1].toLowerCase()) {
+          CORRECT_ANSWER_SCREEN.classList.remove('hidden');
+          LEVELS.splice(levelIndex, 1);
+          score += 1;
+          levelCount -= 1;
+          BTN_NEXT_CORRECT.addEventListener(
+            'click',
+            () => {
+              ANSWER_FIELD.remove();
+              CORRECT_ANSWER_SCREEN.classList.add('hidden');
+              if (levelCount === 0) {
+                FINAL_RESULT.innerText = `${score}/${maxScore}`;
+                PERCENTAGES.innerText = `${Math.round(
+                  (score / maxScore) * 100
+                )}%`;
+                LEVEL_SCREEN.classList.add('hidden');
+                RESULTS_SCREEN.classList.remove('hidden');
+              } else {
+                if (levelIndex >= levelCount) {
+                  levelIndex = 0;
+                }
+                LEVELS[levelIndex]();
+              }
+            },
+            { once: true }
+          );
+        } else {
+          WRONG_ANSWER_SCREEN.classList.remove('hidden');
+          document.getElementById('correct-answer').innerText = translation[1];
+          levelIndex += 1;
+          maxScore += 1;
+          BTN_NEXT_WRONG.addEventListener(
+            'click',
+            () => {
+              ANSWER_FIELD.remove();
+              WRONG_ANSWER_SCREEN.classList.add('hidden');
+              if (levelCount === 0) {
+                FINAL_RESULT.innerText = `${score}/${maxScore}`;
+                PERCENTAGES.innerText = `${Math.round(
+                  (score / maxScore) * 100
+                )}%`;
+                LEVEL_SCREEN.classList.add('hidden');
+                RESULTS_SCREEN.classList.remove('hidden');
+              } else {
+                if (levelIndex >= levelCount) {
+                  levelIndex = 0;
+                }
+                LEVELS[levelIndex]();
+              }
+            },
+            { once: true }
+          );
         }
-    }
-    levelMultiply(numbers,[],0,parseInt(document.querySelector('.range').value))
-}
-function levelMultiply(numbers,errors,level,maxLevel) {console.log(errors)
-    if (level===maxLevel) {
-        end(errors,maxLevel)
-        return
-    }
-    let r = Math.random()
-    for (let i = 1; i<=numbers.length; i++) {
-        if (r<i/numbers.length) {
-            r=numbers.slice(i-1,i)[0]
-            numbers.splice(i-1,1)
-            console.warn(numbers)
-            console.warn(r)
-            break
-        }
-    }
-    level++
-    frame.innerHTML = `
-    <div id='ex'>
-        <span id="numbers">${r[0]} ${r[1]} ${r[2]} = </span>
-        <input id="input" placeholder="?" inputmode="numeric" maxlength="3" autofocus></input>
-    </div>
-    <span id="level">
-        <span>${level}/${maxLevel}</span>
-        <button id="next">></button>
-        <span style='color:red'>${errors.length}x</span>
-    </span>
-    `
-    document.getElementById('input').focus()
-    document.getElementById('next').addEventListener('click',nextMultiply)
-    function nextMultiply() {
-        if (r[3]==document.querySelector('input').value) {
-            levelMultiply(numbers,errors,level,maxLevel)
-        }
-        else {
-            errors.push(r)
-            document.querySelector('body').style.backgroundColor = 'red'
-            setTimeout(()=>{document.querySelector('body').style.backgroundColor = 'rgb(0, 119, 255)'},700)
-            document.getElementById('next').removeEventListener('click',nextMultiply)
-            levelMultiply(numbers,errors,level,maxLevel)
-        }
-    }
-}
-function settingsDivide() {
-    frame.innerHTML = `
-    <div id='settings'>
-        <label id='levels'>Ilość działań: 100</label>
-        <input class="range" type='range' min='1' max='100' value='100'></input>
-    </div>
-    <button class='start'>Start</button>
-    `
-    document.querySelector('.range').addEventListener('mousedown',()=>{
-        let levels = document.getElementById('levels');
-        let levelsRange=setInterval(()=>levels.innerHTML=`Ilość działań: ${document.querySelector('.range').value}`,1)
-        document.querySelector('.range').addEventListener('mouseup',()=>{
-            clearInterval(levelsRange)
-        })
-    })
-    document.querySelector('.start').addEventListener('click',startDivide)
-}
-function startDivide() {
-    let numbers = [];
-    for (let i=1;i<=10;i++) {
-        for (let j=1;j<=10;j++) {
-            numbers.push([i*j,':',i,j]);
-        }
-    }
-    levelDivide(numbers,[],0,parseInt(document.querySelector('.range').value))
-}
-function levelDivide(numbers,errors,level,maxLevel) {
-
-    if (level===maxLevel) {
-        end(errors,maxLevel)
-        return
-    }
-    let r = Math.random()
-    for (let i = 1; i<=numbers.length; i++) {
-        if (r<i/numbers.length) {
-            r=numbers.slice(i-1,i)[0]
-            numbers.splice(i-1,1)
-            console.warn(numbers)
-            console.warn(r)
-            break
-        }
-    }
-    level++
-    frame.innerHTML = `
-    <div id='ex'>
-        <span id="numbers">${r[0]} ${r[1]} ${r[2]} = </span>
-        <input id="input" placeholder="?" inputmode="numeric" maxlength="2" autofocus></input>
-    </div>
-    <span id="level">
-        <span>${level}/${maxLevel}</span>
-        <button id="next">></button>
-        <span style='color:red'>${errors.length}x</span>
-    </span>
-    `
-    document.getElementById('input').focus()
-    document.getElementById('next').addEventListener('click',nextDivide)
-    function nextDivide() {
-        if (r[3]==document.querySelector('input').value) {
-            levelDivide(numbers,errors,level,maxLevel)
-        }
-        else {
-            errors.push(r)
-            document.querySelector('body').style.backgroundColor = 'red'
-            setTimeout(()=>{document.querySelector('body').style.backgroundColor = 'rgb(0, 119, 255)'},700)
-            document.getElementById('next').removeEventListener('click',nextDivide)
-            levelDivide(numbers,errors,level,maxLevel)
-        }
-    }
-}
-
-function end(errors,maxLevel) {
-    frame.innerHTML = `
-    <h1>${Math.round((maxLevel-errors.length)/maxLevel*100)}%</h1>
-    <span>
-        <span id='errors'><span id='errorsNumber'>+</span>  Błędy: ${errors.length}</span>
-    </span>
-    <div id='errorsList'></div>
-    <button id="startButton">Jeszcze raz</button>`
-    let errorsNumber = document.getElementById('errorsNumber')
-    errorsNumber.addEventListener('click',showErrors)
-    function showErrors() {
-        for (let i in errors) {
-            console.log(errors[i])
-            document.getElementById('errorsList').innerHTML+=`
-            <div>${errors[i][0]} ${errors[i][1]} ${errors[i][2]} = ${errors[i][3]}</div>`
-        }
-        errorsNumber.innerHTML = '-'
-        errorsNumber.removeEventListener('click',showErrors)
-        errorsNumber.addEventListener('click',hideErrors)
-    }
-    function hideErrors() {
-            document.getElementById('errorsList').innerHTML=''
-            errorsNumber.innerHTML = '+'
-            errorsNumber.removeEventListener('click',hideErrors)
-            errorsNumber.addEventListener('click',showErrors)
-    }
-    let startButton = document.getElementById('startButton');
-    startButton.addEventListener('click',menu)
-}
-function menu() {
-    frame.innerHTML=`
-    <button id="divideButton">Dzielenie</button>
-    <button id="multiplyButton">Mnożenie</button>
-    <button id="bothButton">Mnożenie i dzielenie</button>`
-    let divideButton = document.getElementById('divideButton');
-    let multiplyButton = document.getElementById('multiplyButton');
-    let bothButton = document.getElementById('bothButton');
-    divideButton.addEventListener('click',settingsDivide)
-    multiplyButton.addEventListener('click',settingsMultiply)
-    bothButton.addEventListener('click',settingsBoth)
+      },
+      { once: true }
+    );
+  };
 }
