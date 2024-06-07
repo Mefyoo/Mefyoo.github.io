@@ -1,14 +1,41 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <link rel="stylesheet" href="style.css">
-        <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>Działania</title>
+<html lang="pl">
 
-    </head>
-    <body>
-        <div id="frame"></div>
-        <script src="script.js"></script>
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nauka angielskiego</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="start-screen">
+        <div id="categories-wrapper"></div>
+        <button id="btn-start" class="btn-primary">Start</button>
+    </div>
+    <div id="level-screen" class="hidden">
+        <div id="question"></div>
+        <div id="answer"></div>
+        <button id="btn-confirm" class="btn-primary">OK</button>
+        <div id="correct-answer-screen" class="hidden">
+            <p class="result" id="good-result">Dobrze!</p>
+            <button id="btn-next-correct" class="btn-primary">Dalej</button>
+        </div>
+        <div id="wrong-answer-screen" class="hidden">
+            <p class="result" id="bad-result">Źle!</p>
+            <p>Poprawna odpowiedź:</p>
+            <p id="correct-answer"></p>
+            <button id="btn-next-wrong" class="btn-primary">Dalej</button>
+        </div>
+    </div>
+    <div id="results-screen" class="hidden">
+        <p class="result" id="final-result"></p>
+        <p id="percentages"></p>
+        <button id="btn-restart" class="btn-primary">Spróbuj jeszcze raz</button>
+    </div>
+    <!-- <div id="grade" class="hidden">5</div> -->
+    <script src=" script.js">
+    </script>
+</body>
+
 </html>
