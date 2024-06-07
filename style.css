@@ -93,20 +93,3 @@ input {
   margin: 0;
   font-size: 32px;
 }
-/* #grade {
-  border: 5px red solid;
-  border-radius: 50%;
-  width: 200px;
-  height: 200px;
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  color: red;
-  display: grid;
-  align-items: center;
-  text-align: center;
-  font-size: 128px;
-  font-family: cursive;
-  font-style: italic;
-  opacity: 80%;
-} */
